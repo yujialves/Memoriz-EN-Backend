@@ -33,7 +33,10 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	}
 	defer db.Close()
 
+	// レスポンスとして返すsubject
 	var response SubjectsResponse
+	// 抽出したsubjectを一時的に格納する変数
+	var tmpSubject SubjectsResponse
 
 	// subjects の抽出
 	rows, err := db.Query(`
@@ -51,15 +54,13 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		if err != nil {
 			log.Fatal(err)
 		}
-		response.Subjects = append(response.Subjects, Subject{Subject_id: id, Name: name})
+		tmpSubject.Subjects = append(tmpSubject.Subjects, Subject{Subject_id: id, Name: name})
 	}
 	rows.Close()
 
-	for _, subject := range response.Subjects {
+	for _, subject := range tmpSubject.Subjects {
 		// グレードの初期化
 		var grades [13]Grade
-
-		log.Printf("name: %v, id: %v ", subject.Name, subject.Subject_id)
 
 		// 各グレードの Solvable の個数を抽出
 		rows, err := db.Query(`
@@ -94,7 +95,6 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 			if err != nil {
 				log.Fatal(err)
 			}
-			log.Printf("sgrade%d: %d", grade, cnt)
 			grades[grade].Solvable = cnt
 		}
 		rows.Close()
@@ -117,12 +117,12 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 			if err != nil {
 				log.Fatal(err)
 			}
-			log.Printf("agrade%d: %d", grade, cnt)
 			grades[grade].All = cnt
 		}
 		rows.Close()
 
 		subject.Grades = grades
+		response.Subjects = append(response.Subjects, subject)
 
 	}
 
