@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -59,7 +60,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		// グレードの初期化
 		var grades [13]Grade
 
-		fmt.Printf("name: %v, id: %v "subject.Name, subject.Subject_id)
+		fmt.Printf("name: %v, id: %v ", subject.Name, subject.Subject_id)
 
 		// 各グレードの Solvable の個数を抽出
 		rows, err := db.Query(`
