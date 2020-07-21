@@ -44,7 +44,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		log.Fatal(err)
 	}
 
-	for rows.Next() != false {
+	for rows.Next() {
 		var id int
 		var name string
 		err := rows.Scan(&id, &name)
@@ -53,6 +53,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		}
 		response.Subjects = append(response.Subjects, Subject{Subject_id: id, Name: name})
 	}
+	rows.Close()
 
 	for _, subject := range response.Subjects {
 		// グレードの初期化
@@ -60,7 +61,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 		// 各グレードの Solvable の個数を抽出
 		rows, err := db.Query(`
-		SELECT COUNT(id) FROM questions 
+		SELECT grade, COUNT(id) FROM questions 
 		WHERE subject_id = ?
 		AND (
 		grade = 0 
@@ -84,20 +85,20 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 			log.Fatal(err)
 		}
 
-		i := 0
-		for rows.Next() != false {
+		for rows.Next() {
+			var grade int
 			var cnt int
-			err := rows.Scan(&cnt)
+			err := rows.Scan(&grade, &cnt)
 			if err != nil {
 				log.Fatal(err)
 			}
-			grades[i].Solvable = cnt
-			i++
+			grades[grade].Solvable = cnt
 		}
+		rows.Close()
 
 		// 各グレードの個数を抽出
 		rows, err = db.Query(`
-		SELECT COUNT(id) FROM questions
+		SELECT grade, COUNT(id) FROM questions
 		WHERE subject_id = ?
 		GROUP BY grade
 		ORDER BY grade
@@ -106,16 +107,16 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 			log.Fatal(err)
 		}
 
-		i = 0
-		for rows.Next() != false {
+		for rows.Next() {
+			var grade int
 			var cnt int
-			err := rows.Scan(&cnt)
+			err := rows.Scan(&grade, &cnt)
 			if err != nil {
 				log.Fatal(err)
 			}
-			grades[i].All = cnt
-			i++
+			grades[grade].All = cnt
 		}
+		rows.Close()
 
 		subject.Grades = grades
 
