@@ -61,7 +61,8 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		// 各グレードの Solvable の個数を抽出
 		rows, err := db.Query(`
 		SELECT COUNT(id) FROM questions 
-		WHERE subject_id = ?
+		WHERE subject_id = 1
+		AND (
 		grade = 0 
 		OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
 		OR (grade = 2 AND (last_updated < (NOW() - INTERVAL 2 DAY)))
@@ -75,6 +76,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
 		OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
 		OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
+		)
 		GROUP BY grade
 		ORDER BY grade
 		;`, subject.Subject_id)
