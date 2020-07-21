@@ -7,12 +7,15 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+
+	"./handlers"
+	"./secret"
 )
 
 func main() {
 
 	// DB 接続
-	db, err := sql.Open("mysql", USER+":"+PASSWORD+"@tcp("+HOSTNAME+")/"+DBNAME)
+	db, err := sql.Open("mysql", secret.USER+":"+secret.PASSWORD+"@tcp("+secret.HOSTNAME+")/"+secret.DBNAME)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,6 +32,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// エンドポイント
+	router.Handle("/subjects", handlers.SubjectsHandler).Methods("GET")
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))
