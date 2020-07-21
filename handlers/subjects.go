@@ -61,7 +61,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		// 各グレードの Solvable の個数を抽出
 		rows, err := db.Query(`
 		SELECT COUNT(id) FROM questions 
-		WHERE subject_id = 1
+		WHERE subject_id = ?
 		AND (
 		grade = 0 
 		OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
