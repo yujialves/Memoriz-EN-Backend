@@ -33,6 +33,7 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 	// subjectIdの取得
 	subjectID := post.SubjectID
+	log.Println("subjectID: ", subjectID)
 
 	// DB 接続
 	db, err := sql.Open("mysql", secret.HOSTNAME+":"+secret.PASSWORD+"@tcp("+secret.HOSTNAME+")/"+secret.DBNAME)
