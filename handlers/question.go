@@ -12,7 +12,7 @@ import (
 )
 
 type QuestionPost struct {
-	SubjectID int `json:"subjectId"`
+	SubjectID string `json:"subjectId"`
 }
 
 type QuestionResponse struct {
