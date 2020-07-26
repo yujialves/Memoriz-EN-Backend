@@ -14,9 +14,9 @@ type SubjectsResponse struct {
 }
 
 type Subject struct {
-	Subject_id int       `json:"subject_id"`
-	Name       string    `json:"name"`
-	Grades     [13]Grade `json:"grades"`
+	SubjectId int       `json:"subjectId"`
+	Name      string    `json:"name"`
+	Grades    [13]Grade `json:"grades"`
 }
 
 type Grade struct {
@@ -54,7 +54,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		if err != nil {
 			log.Fatal(err)
 		}
-		tmpSubject.Subjects = append(tmpSubject.Subjects, Subject{Subject_id: id, Name: name})
+		tmpSubject.Subjects = append(tmpSubject.Subjects, Subject{SubjectId: id, Name: name})
 	}
 	rows.Close()
 
@@ -83,7 +83,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		)
 		GROUP BY grade
 		ORDER BY grade
-		;`, subject.Subject_id)
+		;`, subject.SubjectId)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -105,7 +105,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		WHERE subject_id = ?
 		GROUP BY grade
 		ORDER BY grade
-		;`, subject.Subject_id)
+		;`, subject.SubjectId)
 		if err != nil {
 			log.Fatal(err)
 		}
