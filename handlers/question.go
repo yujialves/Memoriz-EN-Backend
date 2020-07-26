@@ -88,6 +88,8 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	// ランダムな Question を抽出
 	var response QuestionResponse
 	rand.Seed(time.Now().Unix())
+	log.Println("len: ", len(questions))
+	log.Printf("%v, %T", len(questions), len(questions))
 	response.Question = questions[rand.Intn(len(questions))]
 
 	// レスポンスの返信
