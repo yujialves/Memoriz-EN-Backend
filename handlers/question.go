@@ -91,7 +91,5 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	response.Question = questions[rand.Intn(len(questions))]
 
 	// レスポンスの返信
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	log.Print("TEST")
 	json.NewEncoder(w).Encode(response)
 })
