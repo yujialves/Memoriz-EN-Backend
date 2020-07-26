@@ -12,7 +12,7 @@ import (
 )
 
 type QuestionPost struct {
-	SubjectID string `json:"subjectId"`
+	SubjectID int `json:"subjectId"`
 }
 
 type QuestionResponse struct {
@@ -29,12 +29,10 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 	// POSTの解析
 	var post QuestionPost
-	log.Println("body: ", r.Body)
 	json.NewDecoder(r.Body).Decode(&post)
 
 	// subjectIdの取得
 	subjectID := post.SubjectID
-	log.Println("subjectID: ", subjectID)
 
 	// DB 接続
 	db, err := sql.Open("mysql", secret.HOSTNAME+":"+secret.PASSWORD+"@tcp("+secret.HOSTNAME+")/"+secret.DBNAME)
@@ -90,7 +88,6 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	// ランダムな Question を抽出
 	var response QuestionResponse
 	rand.Seed(time.Now().Unix())
-	log.Println("len: ", len(questions))
 	log.Printf("%v, %T", len(questions), len(questions))
 	response.Question = questions[rand.Intn(len(questions))]
 
