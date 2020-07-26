@@ -29,6 +29,7 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 	// POSTの解析
 	var post QuestionPost
+	log.Println("body: ", r.Body)
 	json.NewDecoder(r.Body).Decode(&post)
 
 	// subjectIdの取得
