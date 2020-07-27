@@ -35,6 +35,18 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	}
 	defer db.Close()
 
+	// 日付が変わっていたら正解数、不正解数をリセット
+	_, err = db.Exec(`
+	UPDATE grades
+	SET 
+		correct_count = 0,
+		incorrect_count = 0
+	WHERE last_updated < CURDATE()
+	;`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// レスポンスとして返すsubject
 	var response SubjectsResponse
 	// 抽出したsubjectを一時的に格納する変数
