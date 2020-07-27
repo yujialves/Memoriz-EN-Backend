@@ -34,6 +34,7 @@ func main() {
 	// エンドポイント
 	router.Handle("/subjects", handlers.SubjectsHandler).Methods("GET")
 	router.Handle("/question", handlers.QuestionHandler).Methods("POST")
+	router.Handle("/question/correct", handlers.CorrectHandler).Methods("POST")
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))
