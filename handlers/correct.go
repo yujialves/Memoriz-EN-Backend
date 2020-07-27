@@ -98,14 +98,13 @@ var CorrectHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	// ランダムな Question を抽出
 	var response QuestionResponse
+	response.Rest = len(questions)
 	if len(questions) == 0 {
 		// レスポンスの返信
 		json.NewEncoder(w).Encode(response)
 	} else {
 		rand.Seed(time.Now().Unix())
-		log.Printf("%v, %T", len(questions), len(questions))
 		response.Question = questions[rand.Intn(len(questions))]
-
 		// レスポンスの返信
 		json.NewEncoder(w).Encode(response)
 	}
