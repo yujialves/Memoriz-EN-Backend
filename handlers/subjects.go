@@ -18,7 +18,7 @@ type Subject struct {
 	Name           string    `json:"name"`
 	Grades         [13]Grade `json:"grades"`
 	CorrectCount   int       `json:"correctCount"`
-	InCorrectCount int       `json:"InCorrectCount"`
+	InCorrectCount int       `json:"inCorrectCount"`
 }
 
 type Grade struct {
