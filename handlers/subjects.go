@@ -132,7 +132,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		SELECT G.correct_count, G.incorrect_count FROM questions AS Q
 		INNER JOIN grades AS G
 		ON Q.grade_id = G.id 
-		WHERE Q.subject_id = 65
+		WHERE Q.subject_id = ?
 		;`, subject.SubjectId)
 		if err != nil {
 			log.Fatal(err)
