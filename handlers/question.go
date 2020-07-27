@@ -20,6 +20,7 @@ type QuestionResponse struct {
 }
 
 type Question struct {
+	ID       int    `json"id"`
 	Question string `json:"question"`
 	Answer   string `json:"answer"`
 	Grade    int    `json:"grade"`
@@ -44,7 +45,7 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	// Subject の Solvable な問題をすべて抽出
 
 	stmt, err := db.Prepare(`
-	SELECT question, answer, grade FROM questions 
+	SELECT id, question, answer, grade FROM questions 
 	WHERE subject_id = ?
 	AND (
 	grade = 0 
@@ -74,14 +75,15 @@ var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	var questions []Question
 
 	for rows.Next() {
+		var id int
 		var question string
 		var answer string
 		var grade int
-		err := rows.Scan(&question, &answer, &grade)
+		err := rows.Scan(&id, &question, &answer, &grade)
 		if err != nil {
 			log.Fatal(err)
 		}
-		questions = append(questions, Question{Question: question, Answer: answer, Grade: grade})
+		questions = append(questions, Question{ID: id, Question: question, Answer: answer, Grade: grade})
 	}
 	rows.Close()
 
