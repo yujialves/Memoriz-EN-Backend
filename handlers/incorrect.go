@@ -35,12 +35,14 @@ var InCorrectHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 
 	// question のグレードをダウン
 	stmt, err := db.Prepare(`
-	UPDATE questions
+	UPDATE questions as Q
+	INNER JOIN grades AS G
+	ON Q.grade_id = G.id  
 	SET
-		grade = 0,
-		last_updated = NOW()
+		G.grade = 0,
+		G.last_updated = NOW()
 	WHERE 
-		id = ?
+		Q.id = ?
 	;`)
 	if err != nil {
 		log.Fatal(err)
@@ -54,22 +56,24 @@ var InCorrectHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 	// Subject の Solvable な問題をすべて抽出
 
 	stmt, err = db.Prepare(`
-	SELECT id, question, answer, grade FROM questions 
-	WHERE subject_id = ?
+	SELECT Q.id, Q.question, Q.answer, G.grade FROM questions AS Q
+	INNER JOIN grades AS G
+	ON Q.grade_id = G.id  
+	WHERE Q.subject_id = ?
 	AND (
-	grade = 0 
-	OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
-	OR (grade = 2 AND (last_updated < (NOW() - INTERVAL 2 DAY)))
-	OR (grade = 3 AND (last_updated < (NOW() - INTERVAL 4 DAY)))
-	OR (grade = 4 AND (last_updated < (NOW() - INTERVAL 1 WEEK)))
-	OR (grade = 5 AND (last_updated < (NOW() - INTERVAL 2 WEEK)))
-	OR (grade = 6 AND (last_updated < (NOW() - INTERVAL 1 MONTH)))
-	OR (grade = 7 AND (last_updated < (NOW() - INTERVAL 2 MONTH)))
-	OR (grade = 8 AND (last_updated < (NOW() - INTERVAL 3 MONTH)))
-	OR (grade = 9 AND (last_updated < (NOW() - INTERVAL 4 MONTH)))
-	OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
-	OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
-	OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
+	G.grade = 0 
+	OR (G.grade = 1 AND (G.last_updated < (NOW() - INTERVAL 1 DAY)))
+	OR (G.grade = 2 AND (G.last_updated < (NOW() - INTERVAL 2 DAY)))
+	OR (G.grade = 3 AND (G.last_updated < (NOW() - INTERVAL 4 DAY)))
+	OR (G.grade = 4 AND (G.last_updated < (NOW() - INTERVAL 1 WEEK)))
+	OR (G.grade = 5 AND (G.last_updated < (NOW() - INTERVAL 2 WEEK)))
+	OR (G.grade = 6 AND (G.last_updated < (NOW() - INTERVAL 1 MONTH)))
+	OR (G.grade = 7 AND (G.last_updated < (NOW() - INTERVAL 2 MONTH)))
+	OR (G.grade = 8 AND (G.last_updated < (NOW() - INTERVAL 3 MONTH)))
+	OR (G.grade = 9 AND (G.last_updated < (NOW() - INTERVAL 4 MONTH)))
+	OR (G.grade = 10 AND (G.last_updated < (NOW() - INTERVAL 6 MONTH)))
+	OR (G.grade = 11 AND (G.last_updated < (NOW() - INTERVAL 9 MONTH)))
+	OR (G.grade = 12 AND (G.last_updated < (NOW() - INTERVAL 1 YEAR)))
 	)
 	;`)
 	if err != nil {

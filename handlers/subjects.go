@@ -64,25 +64,27 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 		// 各グレードの Solvable の個数を抽出
 		rows, err := db.Query(`
-		SELECT grade, COUNT(id) FROM questions 
-		WHERE subject_id = ?
+		SELECT G.grade, COUNT(Q.id) FROM questions AS Q 
+		INNER JOIN grades AS G
+		ON Q.grade_id = G.id 
+		WHERE Q.subject_id = ?
 		AND (
-		grade = 0 
-		OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
-		OR (grade = 2 AND (last_updated < (NOW() - INTERVAL 2 DAY)))
-		OR (grade = 3 AND (last_updated < (NOW() - INTERVAL 4 DAY)))
-		OR (grade = 4 AND (last_updated < (NOW() - INTERVAL 1 WEEK)))
-		OR (grade = 5 AND (last_updated < (NOW() - INTERVAL 2 WEEK)))
-		OR (grade = 6 AND (last_updated < (NOW() - INTERVAL 1 MONTH)))
-		OR (grade = 7 AND (last_updated < (NOW() - INTERVAL 2 MONTH)))
-		OR (grade = 8 AND (last_updated < (NOW() - INTERVAL 3 MONTH)))
-		OR (grade = 9 AND (last_updated < (NOW() - INTERVAL 4 MONTH)))
-		OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
-		OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
-		OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
+		G.grade = 0 
+		OR (G.grade = 1 AND (G.last_updated < (NOW() - INTERVAL 1 DAY)))
+		OR (G.grade = 2 AND (G.last_updated < (NOW() - INTERVAL 2 DAY)))
+		OR (G.grade = 3 AND (G.last_updated < (NOW() - INTERVAL 4 DAY)))
+		OR (G.grade = 4 AND (G.last_updated < (NOW() - INTERVAL 1 WEEK)))
+		OR (G.grade = 5 AND (G.last_updated < (NOW() - INTERVAL 2 WEEK)))
+		OR (G.grade = 6 AND (G.last_updated < (NOW() - INTERVAL 1 MONTH)))
+		OR (G.grade = 7 AND (G.last_updated < (NOW() - INTERVAL 2 MONTH)))
+		OR (G.grade = 8 AND (G.last_updated < (NOW() - INTERVAL 3 MONTH)))
+		OR (G.grade = 9 AND (G.last_updated < (NOW() - INTERVAL 4 MONTH)))
+		OR (G.grade = 10 AND (G.last_updated < (NOW() - INTERVAL 6 MONTH)))
+		OR (G.grade = 11 AND (G.last_updated < (NOW() - INTERVAL 9 MONTH)))
+		OR (G.grade = 12 AND (G.last_updated < (NOW() - INTERVAL 1 YEAR)))
 		)
-		GROUP BY grade
-		ORDER BY grade
+		GROUP BY G.grade
+		ORDER BY G.grade
 		;`, subject.SubjectId)
 		if err != nil {
 			log.Fatal(err)
@@ -101,10 +103,12 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 		// 各グレードの個数を抽出
 		rows, err = db.Query(`
-		SELECT grade, COUNT(id) FROM questions
-		WHERE subject_id = ?
-		GROUP BY grade
-		ORDER BY grade
+		SELECT G.grade, COUNT(Q.id) FROM questions AS Q
+		INNER JOIN grades AS G
+		ON Q.grade_id = G.id 
+		WHERE Q.subject_id = ?
+		GROUP BY G.grade
+		ORDER BY G.grade
 		;`, subject.SubjectId)
 		if err != nil {
 			log.Fatal(err)
