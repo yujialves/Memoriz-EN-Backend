@@ -138,6 +138,8 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 			log.Fatal(err)
 		}
 
+		var totalCorrectCount int
+		var totalInCorrectCount int
 		for rows.Next() {
 			var correctCount int
 			var inCorrectCount int
@@ -145,9 +147,11 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 			if err != nil {
 				log.Fatal(err)
 			}
-			subject.CorrectCount = correctCount
-			subject.InCorrectCount = inCorrectCount
+			totalCorrectCount += correctCount
+			totalInCorrectCount += totalInCorrectCount
 		}
+		subject.CorrectCount = totalCorrectCount
+		subject.InCorrectCount = totalInCorrectCount
 		rows.Close()
 
 		subject.Grades = grades

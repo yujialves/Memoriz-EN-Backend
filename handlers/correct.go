@@ -41,6 +41,7 @@ var CorrectHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	SET
 		G.grade = G.grade + 1,
 		G.last_updated = NOW()
+		G.correct_count = G.correct_count + 1
 	WHERE 
 		Q.id = ?
 	;`)
