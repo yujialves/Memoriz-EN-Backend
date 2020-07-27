@@ -14,9 +14,11 @@ type SubjectsResponse struct {
 }
 
 type Subject struct {
-	SubjectId int       `json:"subjectId"`
-	Name      string    `json:"name"`
-	Grades    [13]Grade `json:"grades"`
+	SubjectId      int       `json:"subjectId"`
+	Name           string    `json:"name"`
+	Grades         [13]Grade `json:"grades"`
+	CorrectCount   int       `json:"correctCount"`
+	InCorrectCount int       `json:"InCorrectCount"`
 }
 
 type Grade struct {
@@ -122,6 +124,29 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 				log.Fatal(err)
 			}
 			grades[grade].All = cnt
+		}
+		rows.Close()
+
+		// 各グレードの正解した数、不正解した数を抽出
+		rows, err = db.Query(`
+		SELECT G.correct_count, G.incorrect_count FROM questions AS Q
+		INNER JOIN grades AS G
+		ON Q.grade_id = G.id 
+		WHERE Q.subject_id = ?
+		;`, subject.SubjectId)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for rows.Next() {
+			var correctCount int
+			var inCorrectCount int
+			err := rows.Scan(&correctCount, &inCorrectCount)
+			if err != nil {
+				log.Fatal(err)
+			}
+			subject.CorrectCount = correctCount
+			subject.InCorrectCount = inCorrectCount
 		}
 		rows.Close()
 
