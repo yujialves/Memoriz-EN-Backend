@@ -55,7 +55,7 @@ var SubjectsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	// subjects の抽出
 	rows, err := db.Query(`
 	SELECT id, subject FROM subjects
-	ORDER BY id
+	ORDER BY subject
 	;`)
 	if err != nil {
 		log.Fatal(err)
