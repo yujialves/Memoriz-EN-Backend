@@ -8,7 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 
-	"./handlers"
+	"./controllers"
 	"./secret"
 )
 
@@ -32,10 +32,10 @@ func main() {
 	router := mux.NewRouter()
 
 	// エンドポイント
-	router.Handle("/subjects", handlers.SubjectsHandler).Methods("GET")
-	router.Handle("/question", handlers.QuestionHandler).Methods("POST")
-	router.Handle("/question/correct", handlers.CorrectHandler).Methods("POST")
-	router.Handle("/question/incorrect", handlers.InCorrectHandler).Methods("POST")
+	router.Handle("/subjects", controllers.SubjectsHandler).Methods("GET")
+	router.Handle("/question", controllers.QuestionHandler).Methods("POST")
+	router.Handle("/question/correct", controllers.CorrectHandler).Methods("POST")
+	router.Handle("/question/incorrect", controllers.InCorrectHandler).Methods("POST")
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))

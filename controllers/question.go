@@ -1,4 +1,4 @@
-package handlers
+package controllers
 
 import (
 	"database/sql"
@@ -11,19 +11,29 @@ import (
 	"../secret"
 )
 
-type CorrectPost struct {
-	QuestionID int `json:"questionId"`
-	SubjectID  int `json:"subjectId"`
+type QuestionPost struct {
+	SubjectID int `json:"subjectId"`
 }
 
-var CorrectHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+type QuestionResponse struct {
+	Question Question `json:"question"`
+	Rest     int      `json:"rest"`
+}
+
+type Question struct {
+	ID       int    `json:"id"`
+	Question string `json:"question"`
+	Answer   string `json:"answer"`
+	Grade    int    `json:"grade"`
+}
+
+var QuestionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	// POSTの解析
-	var post CorrectPost
+	var post QuestionPost
 	json.NewDecoder(r.Body).Decode(&post)
 
-	// questionID, subjectIDの取得
-	questionID := post.QuestionID
+	// subjectIdの取得
 	subjectID := post.SubjectID
 
 	// DB 接続
@@ -33,30 +43,9 @@ var CorrectHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	}
 	defer db.Close()
 
-	// question のグレードをアップ
-	stmt, err := db.Prepare(`
-	UPDATE questions as Q
-	INNER JOIN grades AS G
-	ON Q.grade_id = G.id  
-	SET
-		G.grade = G.grade + 1,
-		G.last_updated = NOW(),
-		G.correct_count = G.correct_count + 1
-	WHERE 
-		Q.id = ?
-	;`)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = stmt.Exec(questionID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Subject の Solvable な問題をすべて抽出
 
-	stmt, err = db.Prepare(`
+	stmt, err := db.Prepare(`
 	SELECT Q.id, Q.question, Q.answer, G.grade FROM questions AS Q
 	INNER JOIN grades AS G
 	ON Q.grade_id = G.id  
@@ -109,6 +98,7 @@ var CorrectHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		json.NewEncoder(w).Encode(response)
 	} else {
 		rand.Seed(time.Now().Unix())
+		log.Printf("%v, %T", len(questions), len(questions))
 		response.Question = questions[rand.Intn(len(questions))]
 		// レスポンスの返信
 		json.NewEncoder(w).Encode(response)
