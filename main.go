@@ -6,10 +6,15 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/subosito/gotenv"
 
 	"./controllers"
 	"./driver"
 )
+
+func init() {
+	gotenv.Load()
+}
 
 func main() {
 
