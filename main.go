@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
@@ -9,33 +8,21 @@ import (
 	"github.com/gorilla/mux"
 
 	"./controllers"
-	"./secret"
+	"./driver"
 )
 
 func main() {
 
-	// DB 接続
-	db, err := sql.Open("mysql", secret.USER+":"+secret.PASSWORD+"@tcp("+secret.HOSTNAME+")/"+secret.DBNAME)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// DB 疎通確認
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// DB 切断
-	db.Close()
+	db := driver.ConnectDB()
+	controller := controllers.Controller{}
 
 	router := mux.NewRouter()
 
 	// エンドポイント
-	router.Handle("/subjects", controllers.SubjectsHandler).Methods("GET")
-	router.Handle("/question", controllers.QuestionHandler).Methods("POST")
-	router.Handle("/question/correct", controllers.CorrectHandler).Methods("POST")
-	router.Handle("/question/incorrect", controllers.InCorrectHandler).Methods("POST")
+	router.Handle("/subjects", controller.SubjectsHandler(db)).Methods("GET")
+	router.Handle("/question", controller.QuestionHandler(db)).Methods("POST")
+	router.Handle("/question/correct", controller.CorrectHandler(db)).Methods("POST")
+	router.Handle("/question/incorrect", controller.InCorrectHandler(db)).Methods("POST")
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))
