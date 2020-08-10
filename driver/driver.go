@@ -17,8 +17,9 @@ func ConnectDB() *sql.DB {
 	fmt.Println(os.Getenv("USER"))
 	fmt.Println(os.Getenv("PASSWORD"))
 	fmt.Println(os.Getenv("HOSTNAME"))
+	fmt.Println(os.Getenv("HOST"))
 	fmt.Println(os.Getenv("DBNAME"))
-	db, err := sql.Open("mysql", os.Getenv("USER")+":"+os.Getenv("PASSWORD")+"@tcp("+os.Getenv("HOSTNAME")+")/"+os.Getenv("DBNAME"))
+	db, err := sql.Open("mysql", os.Getenv("USER")+":"+os.Getenv("PASSWORD")+"@tcp("+os.Getenv("HOST")+")/"+os.Getenv("DBNAME"))
 	if err != nil {
 		// log.Fatal(err)
 		log.Println(err)
