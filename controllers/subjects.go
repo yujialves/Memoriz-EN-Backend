@@ -14,19 +14,23 @@ type SubjectsController struct{}
 func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		expired, _ := utils.CheckTokenDate(w, r)
+		expired, user := utils.CheckTokenDate(w, r)
 		if expired {
 			return
 		}
 
 		// 日付が変わっていたら正解数、不正解数をリセット
-		_, err := db.Exec(`
-		UPDATE grades
+		stmt, err := db.Prepare(`
+		UPDATE grades AS G
+		INNER JOIN users AS U
+		ON G.user_id = U.id
 		SET 
-			correct_count = 0,
-			incorrect_count = 0
-		WHERE last_updated < CURDATE()
+			G.correct_count = 0,
+			G.incorrect_count = 0
+		WHERE G.last_updated < CURDATE()
+		AND U.user = ?
 		;`)
+		_, err = stmt.Exec(user)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,25 +66,33 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 			// 各グレードの Solvable の個数を抽出
 			rows, err := db.Query(`
-			SELECT G.grade, COUNT(Q.id) FROM questions AS Q 
-			INNER JOIN grades AS G
-			ON Q.grade_id = G.id 
-			WHERE Q.subject_id = ?
-			AND (
-			G.grade = 0 
-			OR (G.grade = 1 AND (G.last_updated < (NOW() - INTERVAL 1 DAY)))
-			OR (G.grade = 2 AND (G.last_updated < (NOW() - INTERVAL 2 DAY)))
-			OR (G.grade = 3 AND (G.last_updated < (NOW() - INTERVAL 4 DAY)))
-			OR (G.grade = 4 AND (G.last_updated < (NOW() - INTERVAL 1 WEEK)))
-			OR (G.grade = 5 AND (G.last_updated < (NOW() - INTERVAL 2 WEEK)))
-			OR (G.grade = 6 AND (G.last_updated < (NOW() - INTERVAL 1 MONTH)))
-			OR (G.grade = 7 AND (G.last_updated < (NOW() - INTERVAL 2 MONTH)))
-			OR (G.grade = 8 AND (G.last_updated < (NOW() - INTERVAL 3 MONTH)))
-			OR (G.grade = 9 AND (G.last_updated < (NOW() - INTERVAL 4 MONTH)))
-			OR (G.grade = 10 AND (G.last_updated < (NOW() - INTERVAL 6 MONTH)))
-			OR (G.grade = 11 AND (G.last_updated < (NOW() - INTERVAL 9 MONTH)))
-			OR (G.grade = 12 AND (G.last_updated < (NOW() - INTERVAL 1 YEAR)))
-			)
+			SELECT 
+				G.grade, COUNT(Q.id)
+			FROM (
+				SELECT id
+				FROM questions
+				WHERE subject_id = ?
+			) AS Q INNER JOIN (
+				SELECT user_id, question_id, grade
+				FROM grades
+				WHERE grade = 0
+					OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
+					OR (grade = 2 AND (last_updated < (NOW() - INTERVAL 2 DAY)))
+					OR (grade = 3 AND (last_updated < (NOW() - INTERVAL 4 DAY)))
+					OR (grade = 4 AND (last_updated < (NOW() - INTERVAL 1 WEEK)))
+					OR (grade = 5 AND (last_updated < (NOW() - INTERVAL 2 WEEK)))
+					OR (grade = 6 AND (last_updated < (NOW() - INTERVAL 1 MONTH)))
+					OR (grade = 7 AND (last_updated < (NOW() - INTERVAL 2 MONTH)))
+					OR (grade = 8 AND (last_updated < (NOW() - INTERVAL 3 MONTH)))
+					OR (grade = 9 AND (last_updated < (NOW() - INTERVAL 4 MONTH)))
+					OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
+					OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
+					OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
+			) AS G INNER JOIN (
+				SELECT id
+				FROM users
+				WHERE user = ?
+			) AS U ON Q.id = G.question_id AND G.user_id = U.id
 			GROUP BY G.grade
 			ORDER BY G.grade
 			;`, subject.SubjectId)
@@ -101,10 +113,19 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 			// 各グレードの個数を抽出
 			rows, err = db.Query(`
-			SELECT G.grade, COUNT(Q.id) FROM questions AS Q
-			INNER JOIN grades AS G
-			ON Q.grade_id = G.id 
-			WHERE Q.subject_id = ?
+			SELECT G.grade, COUNT(Q.id)
+			FROM (
+				SELECT id
+				FROM questions
+				WHERE subject_id = ?
+			) AS Q INNER JOIN (
+				SELECT grade, question_id, user_id
+				FROM grades
+			) AS G INNER JOIN (
+				SELECT id
+				FROM users
+				WHERE user = ?
+			) AS U ON Q.id = G.question_id AND G.user_id = U.id
 			GROUP BY G.grade
 			ORDER BY G.grade
 			;`, subject.SubjectId)
@@ -125,10 +146,19 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 			// 各グレードの正解した数、不正解した数を抽出
 			rows, err = db.Query(`
-			SELECT G.correct_count, G.incorrect_count FROM questions AS Q
-			INNER JOIN grades AS G
-			ON Q.grade_id = G.id 
-			WHERE Q.subject_id = ?
+			SELECT G.correct_count, G.incorrect_count
+			FROM (
+				SELECT id
+				FROM questions
+				WHERE subject_id = ?
+			) AS Q INNER JOIN (
+				SELECT question_id, user_id, correct_count, incorrect_count
+				FROM grades
+			) AS G INNER JOIN (
+				SELECT id
+				FROM users
+				WHERE user = ?
+			) AS U ON Q.id = G.question_id AND G.user_id = U.id
 			;`, subject.SubjectId)
 			if err != nil {
 				log.Fatal(err)
