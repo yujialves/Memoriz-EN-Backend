@@ -70,8 +70,9 @@ func getUnixMillis(exp time.Time) int64 {
 }
 
 func getTokenFromRequest(r *http.Request) string {
-	fmt.Printf("%v", r.Header)
-	fmt.Printf(r.Header.Get("Authorization"))
+	fmt.Printf("HEADER %v\n", r.Header)
+	fmt.Println()
+	fmt.Println(r.Header.Get("Authorization"))
 	tokenString := r.Header.Get("Authorization")[7:]
 	return tokenString
 }
