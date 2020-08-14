@@ -14,6 +14,11 @@ type SubjectsController struct{}
 func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		expired, _ := utils.CheckTokenDate(w, r)
+		if expired {
+			return
+		}
+
 		// 日付が変わっていたら正解数、不正解数をリセット
 		_, err := db.Exec(`
 		UPDATE grades

@@ -23,6 +23,21 @@ func ResponseJSON(w http.ResponseWriter, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
+func CheckTokenDate(w http.ResponseWriter, r *http.Request) (expired bool, user string) {
+
+	// HTTPリクエストのヘッダーのトークンからトークンの期限を抽出
+	claims := GetMapClaimsFromRequest(r)
+	expireDate := int64(claims["exp"].(float64))
+	user = claims["user"].(string)
+	now := time.Now().UnixNano() / int64(time.Millisecond)
+	if expireDate-now < 0 {
+		errorResponse := models.ErrorResponse{Message: "リフレッシュトークンの期限切れ。"}
+		ResponseWithError(w, http.StatusUnauthorized, errorResponse)
+		return true, ""
+	}
+	return false, user
+}
+
 func ComparePasswords(hashedPassword string, password []byte) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {

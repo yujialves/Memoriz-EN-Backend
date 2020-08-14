@@ -15,6 +15,11 @@ import (
 func (c QuestionController) InCorrectHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		expired, _ := utils.CheckTokenDate(w, r)
+		if expired {
+			return
+		}
+
 		// POSTの解析
 		var post models.InCorrectPost
 		json.NewDecoder(r.Body).Decode(&post)

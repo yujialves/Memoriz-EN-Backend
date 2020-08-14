@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"net/http"
 	"time"
 
@@ -9,7 +8,7 @@ import (
 	"../utils"
 )
 
-func (c AuthController) RefreshHandler(db *sql.DB) http.HandlerFunc {
+func (c AuthController) RefreshHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// HTTPリクエストのヘッダーのトークンからユーザーID、トークンの期限を抽出

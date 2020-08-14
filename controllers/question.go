@@ -17,6 +17,11 @@ type QuestionController struct{}
 func (c QuestionController) QuestionHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		expired, _ := utils.CheckTokenDate(w, r)
+		if expired {
+			return
+		}
+
 		// POSTの解析
 		var post models.QuestionPost
 		json.NewDecoder(r.Body).Decode(&post)
