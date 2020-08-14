@@ -64,6 +64,6 @@ func GenerateToken(user string) (token string, refreshToken string, expireDate i
 
 func getUnixMillis(exp time.Time) int64 {
 	nanos := exp.UnixNano()
-	millis := nanos / 1000000
+	millis := nanos / int64(time.Millisecond)
 	return millis
 }
