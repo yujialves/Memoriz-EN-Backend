@@ -95,7 +95,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			) AS U ON Q.id = G.question_id AND G.user_id = U.id
 			GROUP BY G.grade
 			ORDER BY G.grade
-			;`, subject.SubjectId)
+			;`, subject.SubjectId, user)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -128,7 +128,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			) AS U ON Q.id = G.question_id AND G.user_id = U.id
 			GROUP BY G.grade
 			ORDER BY G.grade
-			;`, subject.SubjectId)
+			;`, subject.SubjectId, user)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -159,7 +159,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 				FROM users
 				WHERE user = ?
 			) AS U ON Q.id = G.question_id AND G.user_id = U.id
-			;`, subject.SubjectId)
+			;`, subject.SubjectId, user)
 			if err != nil {
 				log.Fatal(err)
 			}
