@@ -32,7 +32,7 @@ func (c AuthController) LoginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var hashedPassword string
-		row := db.QueryRow("SELECT password FROM users WHERE user = $1", post.User)
+		row := db.QueryRow("SELECT password FROM users WHERE user = ?", post.User)
 		err := row.Scan(&hashedPassword)
 		if err != nil {
 			if err == sql.ErrNoRows {
