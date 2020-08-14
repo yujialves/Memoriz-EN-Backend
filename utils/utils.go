@@ -67,3 +67,25 @@ func getUnixMillis(exp time.Time) int64 {
 	millis := nanos / int64(time.Millisecond)
 	return millis
 }
+
+func getTokenFromRequest(r *http.Request) string {
+	tokenString := r.Header.Get("Authorization")[7:]
+	return tokenString
+}
+
+func decodeToken(tokenString string) jwt.MapClaims {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SECRET_STRING")), nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	return claims
+}
+
+func GetMapClaimsFromRequest(r *http.Request) jwt.MapClaims {
+	tokenString := getTokenFromRequest(r)
+	claims := decodeToken(tokenString)
+	return claims
+}

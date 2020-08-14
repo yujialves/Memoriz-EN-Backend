@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/subosito/gotenv"
 
+	"./auth"
 	"./controllers"
 	"./driver"
 )
@@ -31,6 +32,7 @@ func main() {
 	router.Handle("/question/correct", questionController.CorrectHandler(db)).Methods("POST")
 	router.Handle("/question/incorrect", questionController.InCorrectHandler(db)).Methods("POST")
 	router.Handle("/auth/login", authController.LoginHandler(db)).Methods("POST")
+	router.Handle("/auth/refresh", auth.JwtMiddleware.Handler(authController.RefreshHandler(db))).Methods("GET")
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))

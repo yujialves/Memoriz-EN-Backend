@@ -48,9 +48,6 @@ func (c AuthController) LoginHandler(db *sql.DB) http.HandlerFunc {
 		if isValidPassword {
 
 			token, refreshToken, exp := utils.GenerateToken(post.User)
-			if err != nil {
-				log.Fatal(err)
-			}
 
 			response := models.LoginResponse{User: post.User, Password: "", Token: token, RefreshToken: refreshToken, ExpireDate: exp}
 			utils.ResponseJSON(w, response)

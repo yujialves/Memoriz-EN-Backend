@@ -8,6 +8,14 @@ type LoginResponse struct {
 	ExpireDate   int64  `json:"expireDate"`
 }
 
+type RefreshResponse struct {
+	User         string `json:"user"`
+	Password     string `json:"password"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+	ExpireDate   int64  `json:"expireDate"`
+}
+
 type QuestionResponse struct {
 	Question Question `json:"question"`
 	Rest     int      `json:"rest"`
