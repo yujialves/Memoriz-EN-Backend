@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"../models"
+	"../utils"
 )
 
-func (c Controller) CorrectHandler(db *sql.DB) http.HandlerFunc {
+func (c QuestionController) CorrectHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// POSTの解析
@@ -95,12 +96,12 @@ func (c Controller) CorrectHandler(db *sql.DB) http.HandlerFunc {
 		response.Rest = len(questions)
 		if len(questions) == 0 {
 			// レスポンスの返信
-			json.NewEncoder(w).Encode(response)
+			utils.ResponseJSON(w, response)
 		} else {
 			rand.Seed(time.Now().Unix())
 			response.Question = questions[rand.Intn(len(questions))]
 			// レスポンスの返信
-			json.NewEncoder(w).Encode(response)
+			utils.ResponseJSON(w, response)
 		}
 	}
 }

@@ -19,15 +19,18 @@ func init() {
 func main() {
 
 	db := driver.ConnectDB()
-	controller := controllers.Controller{}
+	subjectsController := controllers.SubjectsController{}
+	questionController := controllers.QuestionController{}
+	authController := controllers.AuthController{}
 
 	router := mux.NewRouter()
 
 	// エンドポイント
-	router.Handle("/subjects", controller.SubjectsHandler(db)).Methods("GET")
-	router.Handle("/question", controller.QuestionHandler(db)).Methods("POST")
-	router.Handle("/question/correct", controller.CorrectHandler(db)).Methods("POST")
-	router.Handle("/question/incorrect", controller.InCorrectHandler(db)).Methods("POST")
+	router.Handle("/subjects", subjectsController.SubjectsHandler(db)).Methods("GET")
+	router.Handle("/question", questionController.QuestionHandler(db)).Methods("POST")
+	router.Handle("/question/correct", questionController.CorrectHandler(db)).Methods("POST")
+	router.Handle("/question/incorrect", questionController.InCorrectHandler(db)).Methods("POST")
+	router.Handle("/auth/login", authController.LoginHandler(db)).Methods("POST")
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))

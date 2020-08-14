@@ -9,9 +9,12 @@ import (
 	"time"
 
 	"../models"
+	"../utils"
 )
 
-func (c Controller) QuestionHandler(db *sql.DB) http.HandlerFunc {
+type QuestionController struct{}
+
+func (c QuestionController) QuestionHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// POSTの解析
@@ -73,13 +76,13 @@ func (c Controller) QuestionHandler(db *sql.DB) http.HandlerFunc {
 		response.Rest = len(questions)
 		if len(questions) == 0 {
 			// レスポンスの返信
-			json.NewEncoder(w).Encode(response)
+			utils.ResponseJSON(w, response)
 		} else {
 			rand.Seed(time.Now().Unix())
 			log.Printf("%v, %T", len(questions), len(questions))
 			response.Question = questions[rand.Intn(len(questions))]
 			// レスポンスの返信
-			json.NewEncoder(w).Encode(response)
+			utils.ResponseJSON(w, response)
 		}
 	}
 }

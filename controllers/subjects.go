@@ -2,16 +2,16 @@ package controllers
 
 import (
 	"database/sql"
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"../models"
+	"../utils"
 )
 
-type Controller struct{}
+type SubjectsController struct{}
 
-func (c Controller) SubjectsHandler(db *sql.DB) http.HandlerFunc {
+func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// 日付が変わっていたら正解数、不正解数をリセット
@@ -150,6 +150,6 @@ func (c Controller) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 		}
 
-		json.NewEncoder(w).Encode(response)
+		utils.ResponseJSON(w, response)
 	}
 }
