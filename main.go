@@ -32,7 +32,7 @@ func main() {
 	router.Handle("/question/correct", questionController.CorrectHandler(db)).Methods("POST")
 	router.Handle("/question/incorrect", questionController.InCorrectHandler(db)).Methods("POST")
 	router.Handle("/auth/login", authController.LoginHandler(db)).Methods("POST")
-	router.Handle("/auth/refresh", auth.JwtMiddleware.Handler(authController.RefreshHandler(db))).Methods("GET")
+	router.Handle("/auth/refresh", auth.JwtMiddleware.Handler(authController.RefreshHandler(db)))
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))
