@@ -52,10 +52,6 @@ func (c AuthController) LoginHandler(db *sql.DB) http.HandlerFunc {
 				log.Fatal(err)
 			}
 
-			w.WriteHeader(http.StatusOK)
-			w.Header().Set("Content-Type", "application/json")
-			w.Header().Set("Authorization", token)
-
 			response := models.LoginResponse{User: post.User, Password: "", Token: token, RefreshToken: refreshToken, ExpireDate: exp}
 			utils.ResponseJSON(w, response)
 		} else {
