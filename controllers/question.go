@@ -17,7 +17,7 @@ type QuestionController struct{}
 func (c QuestionController) QuestionHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		expired, _ := utils.CheckTokenDate(w, r)
+		expired, userID := utils.CheckTokenDate(w, r)
 		if expired {
 			return
 		}
@@ -65,7 +65,7 @@ func (c QuestionController) QuestionHandler(db *sql.DB) http.HandlerFunc {
 			log.Fatal(err)
 		}
 
-		rows, err := stmt.Query(subjectID)
+		rows, err := stmt.Query(subjectID, userID)
 		if err != nil {
 			log.Fatal(err)
 		}
