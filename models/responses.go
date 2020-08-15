@@ -23,6 +23,7 @@ type QuestionResponse struct {
 
 type SubjectsResponse struct {
 	Subjects []Subject `json:"subjects"`
+	Exp      int       `json:"exp"`
 }
 
 type ErrorResponse struct {

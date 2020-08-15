@@ -193,7 +193,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			rows.Close()
 
 			subject.Grades = grades
-			subject.Exp = utils.CalculateExp(totalGrades)
+			response.Exp = utils.CalculateExp(totalGrades)
 			response.Subjects = append(response.Subjects, subject)
 
 		}

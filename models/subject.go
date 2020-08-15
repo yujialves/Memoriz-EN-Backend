@@ -8,5 +8,4 @@ type Subject struct {
 	InCorrectCount      int       `json:"inCorrectCount"`
 	TotalCorrectCount   int       `json:"totalCorrectCount"`
 	TotalInCorrectCount int       `json:"totalInCorrectCount"`
-	Exp                 int       `json:"exp"`
 }
