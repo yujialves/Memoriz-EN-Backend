@@ -145,13 +145,13 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 			// 各グレードの正解した数、不正解した数を抽出
 			rows, err = db.Query(`
-			SELECT G.correct_count, G.incorrect_count
+			SELECT G.correct_count, G.incorrect_count, G.total_correct_count, G.total_incorrect_count
 			FROM (((
 			SELECT id
 			FROM questions
 			WHERE subject_id = ?) AS Q 
 			INNER JOIN (
-			SELECT question_id, user_id, correct_count, incorrect_count
+			SELECT question_id, user_id, correct_count, incorrect_count, total_correct_count, total_incorrect_count
 			FROM grades) AS G 
 			ON Q.id = G.question_id) 
 			INNER JOIN (
@@ -164,20 +164,28 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 				log.Fatal(err)
 			}
 
-			var totalCorrectCount int
-			var totalInCorrectCount int
+			var correctCountSum int
+			var inCorrectCountSum int
+			var totalCorrectCountSum int
+			var totalInCorrectCountSum int
 			for rows.Next() {
 				var correctCount int
 				var inCorrectCount int
-				err := rows.Scan(&correctCount, &inCorrectCount)
+				var totalCorrectCount int
+				var totalInCorrectCount int
+				err := rows.Scan(&correctCount, &inCorrectCount, &totalCorrectCount, &totalInCorrectCount)
 				if err != nil {
 					log.Fatal(err)
 				}
-				totalCorrectCount += correctCount
-				totalInCorrectCount += inCorrectCount
+				correctCountSum += correctCount
+				inCorrectCountSum += inCorrectCount
+				totalCorrectCountSum += totalCorrectCount
+				totalInCorrectCountSum += totalInCorrectCount
 			}
-			subject.CorrectCount = totalCorrectCount
-			subject.InCorrectCount = totalInCorrectCount
+			subject.CorrectCount = correctCountSum
+			subject.InCorrectCount = inCorrectCountSum
+			subject.TotalCorrectCount = totalCorrectCountSum
+			subject.TotalInCorrectCount = totalInCorrectCountSum
 			rows.Close()
 
 			subject.Grades = grades
