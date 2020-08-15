@@ -15,7 +15,7 @@ import (
 func (c QuestionController) CorrectHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		expired, _ := utils.CheckTokenDate(w, r)
+		expired, userID := utils.CheckTokenDate(w, r)
 		if expired {
 			return
 		}
@@ -30,21 +30,22 @@ func (c QuestionController) CorrectHandler(db *sql.DB) http.HandlerFunc {
 
 		// question のグレードをアップ
 		stmt, err := db.Prepare(`
-		UPDATE questions as Q
+		UPDATE questions AS Q
 		INNER JOIN grades AS G
-		ON Q.grade_id = G.id  
-		SET
-			G.grade = G.grade + 1,
-			G.last_updated = NOW(),
-			G.correct_count = G.correct_count + 1
-		WHERE 
-			Q.id = ?
+		ON Q.id = G.question_id
+		INNER JOIN users AS U
+		ON G.user_id = U.id
+		SET G.grade = G.grade + 1,
+		G.last_updated = NOW(),
+		G.correct_count = G.correct_count + 1,
+		G.total_correct_count = G.total_correct_count + 1
+		WHERE Q.id = ? AND U.user = ?
 		;`)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		_, err = stmt.Exec(questionID)
+		_, err = stmt.Exec(questionID, userID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -52,31 +53,40 @@ func (c QuestionController) CorrectHandler(db *sql.DB) http.HandlerFunc {
 		// Subject の Solvable な問題をすべて抽出
 
 		stmt, err = db.Prepare(`
-		SELECT Q.id, Q.question, Q.answer, G.grade FROM questions AS Q
-		INNER JOIN grades AS G
-		ON Q.grade_id = G.id  
-		WHERE Q.subject_id = ?
-		AND (
-		G.grade = 0 
-		OR (G.grade = 1 AND (G.last_updated < (NOW() - INTERVAL 1 DAY)))
-		OR (G.grade = 2 AND (G.last_updated < (NOW() - INTERVAL 2 DAY)))
-		OR (G.grade = 3 AND (G.last_updated < (NOW() - INTERVAL 4 DAY)))
-		OR (G.grade = 4 AND (G.last_updated < (NOW() - INTERVAL 1 WEEK)))
-		OR (G.grade = 5 AND (G.last_updated < (NOW() - INTERVAL 2 WEEK)))
-		OR (G.grade = 6 AND (G.last_updated < (NOW() - INTERVAL 1 MONTH)))
-		OR (G.grade = 7 AND (G.last_updated < (NOW() - INTERVAL 2 MONTH)))
-		OR (G.grade = 8 AND (G.last_updated < (NOW() - INTERVAL 3 MONTH)))
-		OR (G.grade = 9 AND (G.last_updated < (NOW() - INTERVAL 4 MONTH)))
-		OR (G.grade = 10 AND (G.last_updated < (NOW() - INTERVAL 6 MONTH)))
-		OR (G.grade = 11 AND (G.last_updated < (NOW() - INTERVAL 9 MONTH)))
-		OR (G.grade = 12 AND (G.last_updated < (NOW() - INTERVAL 1 YEAR)))
-		)
+		SELECT Q.id, Q.question, Q.answer, G.grade
+		FROM (((
+		SELECT id, question, answer
+		FROM questions
+		WHERE subject_id = ?) AS Q
+		INNER JOIN (
+		SELECT grade, user_id, question_id
+		FROM grades
+		WHERE grade = 0 
+		OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
+		OR (grade = 2 AND (last_updated < (NOW() - INTERVAL 2 DAY)))
+		OR (grade = 3 AND (last_updated < (NOW() - INTERVAL 4 DAY)))
+		OR (grade = 4 AND (last_updated < (NOW() - INTERVAL 1 WEEK)))
+		OR (grade = 5 AND (last_updated < (NOW() - INTERVAL 2 WEEK)))
+		OR (grade = 6 AND (last_updated < (NOW() - INTERVAL 1 MONTH)))
+		OR (grade = 7 AND (last_updated < (NOW() - INTERVAL 2 MONTH)))
+		OR (grade = 8 AND (last_updated < (NOW() - INTERVAL 3 MONTH)))
+		OR (grade = 9 AND (last_updated < (NOW() - INTERVAL 4 MONTH)))
+		OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
+		OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
+		OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
+		) AS G
+		ON Q.id = G.question_id)
+		INNER JOIN (
+		SELECT id
+		FROM users
+		WHERE user = ?) AS U 
+		ON G.user_id = U.id)
 		;`)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		rows, err := stmt.Query(subjectID)
+		rows, err := stmt.Query(subjectID, userID)
 		if err != nil {
 			log.Fatal(err)
 		}
