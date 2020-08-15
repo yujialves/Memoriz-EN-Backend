@@ -66,14 +66,13 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 			// 各グレードの Solvable の個数を抽出
 			rows, err := db.Query(`
-			SELECT 
-				G.grade, COUNT(Q.id)
-			FROM (
+			SELECT G.grade, COUNT(Q.id)
+			FROM (((
 				SELECT id
 				FROM questions
-				WHERE subject_id = ?
-			) AS Q INNER JOIN (
-				SELECT user_id, question_id, grade
+				WHERE subject_id = ?) AS Q
+				INNER JOIN
+				(SELECT user_id, question_id, grade
 				FROM grades
 				WHERE grade = 0
 					OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
@@ -88,11 +87,13 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 					OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
 					OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
 					OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
-			) AS G INNER JOIN (
-				SELECT id
-				FROM users
-				WHERE user = ?
-			) AS U ON Q.id = G.question_id AND G.user_id = U.id
+				) AS G ON Q.id = G.question_id
+				) INNER JOIN (
+					SELECT id
+					FROM users
+					WHERE user = ?
+				) AS U ON G.user_id = U.id
+			)
 			GROUP BY G.grade
 			ORDER BY G.grade
 			;`, subject.SubjectId, user)
@@ -114,18 +115,21 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			// 各グレードの個数を抽出
 			rows, err = db.Query(`
 			SELECT G.grade, COUNT(Q.id)
-			FROM (
+			FROM (((
 				SELECT id
 				FROM questions
-				WHERE subject_id = ?
-			) AS Q INNER JOIN (
-				SELECT grade, question_id, user_id
-				FROM grades
-			) AS G INNER JOIN (
-				SELECT id
-				FROM users
-				WHERE user = ?
-			) AS U ON Q.id = G.question_id AND G.user_id = U.id
+				WHERE subject_id = ?) AS Q
+				INNER JOIN (
+					SELECT grade, question_id, user_id
+					FROM grades
+				) AS G ON Q.id = G.question_id
+				) INNER JOIN (
+					SELECT id
+					FROM users
+					WHERE user = ?
+				) AS U 
+				ON G.user_id = U.id
+			)  
 			GROUP BY G.grade
 			ORDER BY G.grade
 			;`, subject.SubjectId, user)
@@ -147,18 +151,19 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			// 各グレードの正解した数、不正解した数を抽出
 			rows, err = db.Query(`
 			SELECT G.correct_count, G.incorrect_count
-			FROM (
+			FROM (((
 				SELECT id
 				FROM questions
-				WHERE subject_id = ?
-			) AS Q INNER JOIN (
-				SELECT question_id, user_id, correct_count, incorrect_count
-				FROM grades
-			) AS G INNER JOIN (
-				SELECT id
-				FROM users
-				WHERE user = ?
-			) AS U ON Q.id = G.question_id AND G.user_id = U.id
+				WHERE subject_id = ?) AS Q 
+				INNER JOIN (
+					SELECT question_id, user_id, correct_count, incorrect_count
+					FROM grades) AS G 
+				) INNER JOIN (
+					SELECT id
+					FROM users
+					WHERE user = ?) AS U 
+				ON Q.id = G.question_id AND G.user_id = U.id
+			)
 			;`, subject.SubjectId, user)
 			if err != nil {
 				log.Fatal(err)
