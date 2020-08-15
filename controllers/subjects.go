@@ -24,9 +24,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 		UPDATE grades AS G
 		INNER JOIN users AS U
 		ON G.user_id = U.id
-		SET 
-			G.correct_count = 0,
-			G.incorrect_count = 0
+		SET G.correct_count = 0, G.incorrect_count = 0
 		WHERE G.last_updated < CURDATE()
 		AND U.user = ?
 		;`)
@@ -68,32 +66,31 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			rows, err := db.Query(`
 			SELECT G.grade, COUNT(Q.id)
 			FROM (((
-				SELECT id
-				FROM questions
-				WHERE subject_id = ?) AS Q
-				INNER JOIN
-				(SELECT user_id, question_id, grade
-				FROM grades
-				WHERE grade = 0
-					OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
-					OR (grade = 2 AND (last_updated < (NOW() - INTERVAL 2 DAY)))
-					OR (grade = 3 AND (last_updated < (NOW() - INTERVAL 4 DAY)))
-					OR (grade = 4 AND (last_updated < (NOW() - INTERVAL 1 WEEK)))
-					OR (grade = 5 AND (last_updated < (NOW() - INTERVAL 2 WEEK)))
-					OR (grade = 6 AND (last_updated < (NOW() - INTERVAL 1 MONTH)))
-					OR (grade = 7 AND (last_updated < (NOW() - INTERVAL 2 MONTH)))
-					OR (grade = 8 AND (last_updated < (NOW() - INTERVAL 3 MONTH)))
-					OR (grade = 9 AND (last_updated < (NOW() - INTERVAL 4 MONTH)))
-					OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
-					OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
-					OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
-				) AS G ON Q.id = G.question_id
-				) INNER JOIN (
-					SELECT id
-					FROM users
-					WHERE user = ?
-				) AS U ON G.user_id = U.id
-			)
+			SELECT id
+			FROM questions
+			WHERE subject_id = ?) AS Q
+			INNER JOIN (
+			SELECT user_id, question_id, grade
+			FROM grades
+			WHERE grade = 0
+			OR (grade = 1 AND (last_updated < (NOW() - INTERVAL 1 DAY)))
+			OR (grade = 2 AND (last_updated < (NOW() - INTERVAL 2 DAY)))
+			OR (grade = 3 AND (last_updated < (NOW() - INTERVAL 4 DAY)))
+			OR (grade = 4 AND (last_updated < (NOW() - INTERVAL 1 WEEK)))
+			OR (grade = 5 AND (last_updated < (NOW() - INTERVAL 2 WEEK)))
+			OR (grade = 6 AND (last_updated < (NOW() - INTERVAL 1 MONTH)))
+			OR (grade = 7 AND (last_updated < (NOW() - INTERVAL 2 MONTH)))
+			OR (grade = 8 AND (last_updated < (NOW() - INTERVAL 3 MONTH)))
+			OR (grade = 9 AND (last_updated < (NOW() - INTERVAL 4 MONTH)))
+			OR (grade = 10 AND (last_updated < (NOW() - INTERVAL 6 MONTH)))
+			OR (grade = 11 AND (last_updated < (NOW() - INTERVAL 9 MONTH)))
+			OR (grade = 12 AND (last_updated < (NOW() - INTERVAL 1 YEAR)))
+			) AS G ON Q.id = G.question_id) 
+			INNER JOIN (
+			SELECT id
+			FROM users
+			WHERE user = ?) AS U 
+			ON G.user_id = U.id)
 			GROUP BY G.grade
 			ORDER BY G.grade
 			;`, subject.SubjectId, user)
@@ -116,20 +113,18 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			rows, err = db.Query(`
 			SELECT G.grade, COUNT(Q.id)
 			FROM (((
-				SELECT id
-				FROM questions
-				WHERE subject_id = ?) AS Q
-				INNER JOIN (
-					SELECT grade, question_id, user_id
-					FROM grades
-				) AS G ON Q.id = G.question_id
-				) INNER JOIN (
-					SELECT id
-					FROM users
-					WHERE user = ?
-				) AS U 
-				ON G.user_id = U.id
-			)  
+			SELECT id
+			FROM questions
+			WHERE subject_id = ?) AS Q
+			INNER JOIN (
+			SELECT grade, question_id, user_id
+			FROM grades) AS G 
+			ON Q.id = G.question_id) 
+			INNER JOIN (
+			SELECT id
+			FROM users
+			WHERE user = ?) AS U 
+			ON G.user_id = U.id)  
 			GROUP BY G.grade
 			ORDER BY G.grade
 			;`, subject.SubjectId, user)
@@ -152,18 +147,18 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			rows, err = db.Query(`
 			SELECT G.correct_count, G.incorrect_count
 			FROM (((
-				SELECT id
-				FROM questions
-				WHERE subject_id = ?) AS Q 
-				INNER JOIN (
-					SELECT question_id, user_id, correct_count, incorrect_count
-					FROM grades) AS G 
-				) INNER JOIN (
-					SELECT id
-					FROM users
-					WHERE user = ?) AS U 
-				ON Q.id = G.question_id AND G.user_id = U.id
-			)
+			SELECT id
+			FROM questions
+			WHERE subject_id = ?) AS Q 
+			INNER JOIN (
+			SELECT question_id, user_id, correct_count, incorrect_count
+			FROM grades) AS G 
+			ON Q.id = G.question_id) 
+			INNER JOIN (
+			SELECT id
+			FROM users
+			WHERE user = ?) AS U 
+			ON G.user_id = U.id)
 			;`, subject.SubjectId, user)
 			if err != nil {
 				log.Fatal(err)
