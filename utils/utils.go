@@ -104,3 +104,10 @@ func GetMapClaimsFromRequest(r *http.Request) jwt.MapClaims {
 	claims := decodeToken(tokenString)
 	return claims
 }
+
+func CalculateExp(grades [13]int) (totalExp int) {
+	for i := 0; i < 13; i++ {
+		totalExp += (grades[i] * i)
+	}
+	return totalExp
+}

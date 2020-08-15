@@ -58,6 +58,9 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 		}
 		rows.Close()
 
+		// 経験値を出すための全ての Subjects のグレードの総数を格納する変数
+		var totalGrades [13]int
+
 		for _, subject := range tmpSubject.Subjects {
 			// グレードの初期化
 			var grades [13]models.Grade
@@ -140,6 +143,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 					log.Fatal(err)
 				}
 				grades[grade].All = cnt
+				totalGrades[grade] += cnt
 			}
 			rows.Close()
 
@@ -189,6 +193,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 			rows.Close()
 
 			subject.Grades = grades
+			subject.Exp = utils.CalculateExp(totalGrades)
 			response.Subjects = append(response.Subjects, subject)
 
 		}
