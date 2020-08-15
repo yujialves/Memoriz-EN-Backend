@@ -29,3 +29,7 @@ type SubjectsResponse struct {
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
+
+type QuestionListResponse struct {
+	QuestionList []Question `json:"questionList"`
+}

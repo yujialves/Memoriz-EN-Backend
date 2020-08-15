@@ -18,3 +18,7 @@ type InCorrectPost struct {
 type QuestionPost struct {
 	SubjectID int `json:"subjectId"`
 }
+
+type QuestionListPost struct {
+	SubjectID int `json:"subjectId"`
+}
