@@ -39,7 +39,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 		// 各 Subject の解ける問題の数を抽出
 		stmt, err = db.Prepare(`
-		SELECT subjects.id, subjects.subject, MAIN.grade1, MAIN.grade2, MAIN.grade3, MAIN.grade4, MAIN.grade5, MAIN.grade6, MAIN.grade7, MAIN.grade8, MAIN.grade9, MAIN.grade10, MAIN.grade11, MAIN.grade12 FROM subjects LEFT OUTER JOIN (
+		SELECT subjects.id, subjects.subject, MAIN.grade0, MAIN.grade1, MAIN.grade2, MAIN.grade3, MAIN.grade4, MAIN.grade5, MAIN.grade6, MAIN.grade7, MAIN.grade8, MAIN.grade9, MAIN.grade10, MAIN.grade11, MAIN.grade12 FROM subjects LEFT OUTER JOIN (
 		SELECT id, subject, SUM(grade0) AS grade0, SUM(grade1) AS grade1, SUM(grade2) AS grade2, SUM(grade3) AS grade3, SUM(grade4) AS grade4, SUM(grade5) AS grade5, SUM(grade6) AS grade6, SUM(grade7) AS grade7, SUM(grade8) AS grade8, SUM(grade9) AS grade9, SUM(grade10) AS grade10, SUM(grade11) AS grade11, SUM(grade12) AS grade12
 		FROM (
 		SELECT S.id, S.subject,
