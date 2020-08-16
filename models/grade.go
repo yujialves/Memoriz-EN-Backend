@@ -1,6 +1,6 @@
 package models
 
 type Grade struct {
-	Solvable int `json:"solvable"`
-	All      int `json:"all"`
+	Solvable int64 `json:"solvable"`
+	All      int   `json:"all"`
 }

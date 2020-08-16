@@ -39,6 +39,7 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 		// 各 Subject の解ける問題の数を抽出
 		stmt, err = db.Prepare(`
+		SELECT MAIN.* FROM subjects LEFT OUTER JOIN (
 		SELECT id, subject, SUM(grade0), SUM(grade1), SUM(grade2), SUM(grade3), SUM(grade4), SUM(grade5), SUM(grade6), SUM(grade7), SUM(grade8), SUM(grade9), SUM(grade10), SUM(grade11), SUM(grade12)
 		FROM (
 		SELECT S.id, S.subject,
@@ -85,7 +86,8 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 		GROUP BY S.id, G.grade
 		ORDER BY S.id, G.grade) AS N
 		GROUP BY subject
-		ORDER BY subject
+		ORDER BY subject 
+		) AS MAIN USING(id)
 		;`)
 		if err != nil {
 			log.Fatal()
@@ -97,7 +99,29 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 		for rows.Next() {
 			var subject models.Subject
-			err = rows.Scan(&subject.SubjectId, &subject.Name, &subject.Grades[0].Solvable, &subject.Grades[1].Solvable, &subject.Grades[2].Solvable, &subject.Grades[3].Solvable, &subject.Grades[4].Solvable, &subject.Grades[5].Solvable, &subject.Grades[6].Solvable, &subject.Grades[7].Solvable, &subject.Grades[8].Solvable, &subject.Grades[9].Solvable, &subject.Grades[10].Solvable, &subject.Grades[11].Solvable, &subject.Grades[12].Solvable)
+			var name sql.NullString
+			var id, grade0, grade1, grade2, grade3, grade4, grade5, grade6, grade7, grade8, grade9, grade10, grade11, grade12 sql.NullInt64
+			err = rows.Scan(&id, &name, &grade0, &grade1, &grade2, &grade3, &grade4, &grade5, &grade6, &grade7, &grade8, &grade9, &grade10, &grade11, &grade12)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if id.Valid {
+				subject.SubjectId = id.Int64
+				subject.Name = name.String
+				subject.Grades[0].Solvable = grade0.Int64
+				subject.Grades[1].Solvable = grade1.Int64
+				subject.Grades[2].Solvable = grade2.Int64
+				subject.Grades[3].Solvable = grade3.Int64
+				subject.Grades[4].Solvable = grade4.Int64
+				subject.Grades[5].Solvable = grade5.Int64
+				subject.Grades[6].Solvable = grade6.Int64
+				subject.Grades[7].Solvable = grade7.Int64
+				subject.Grades[8].Solvable = grade8.Int64
+				subject.Grades[9].Solvable = grade9.Int64
+				subject.Grades[10].Solvable = grade10.Int64
+				subject.Grades[11].Solvable = grade11.Int64
+				subject.Grades[12].Solvable = grade12.Int64
+			}
 			response.Subjects = append(response.Subjects, subject)
 		}
 		rows.Close()
