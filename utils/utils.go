@@ -105,9 +105,11 @@ func GetMapClaimsFromRequest(r *http.Request) jwt.MapClaims {
 	return claims
 }
 
-func CalculateExp(grades [13]int) (totalExp int) {
-	for i := 0; i < 13; i++ {
-		totalExp += (grades[i] * i)
+func CalculateExp(subjects []models.Subject) (totalExp int) {
+	for _, subject := range subjects {
+		for i := 0; i < 13; i++ {
+			totalExp += (subject.Grades[i].All * i)
+		}
 	}
 	return totalExp
 }
