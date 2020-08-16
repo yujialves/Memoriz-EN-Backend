@@ -1,7 +1,7 @@
 package models
 
 type Subject struct {
-	SubjectId           int64     `json:"subjectId"`
+	SubjectId           int       `json:"subjectId"`
 	Name                string    `json:"name"`
 	Grades              [13]Grade `json:"grades"`
 	CorrectCount        int       `json:"correctCount"`

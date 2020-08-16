@@ -39,8 +39,8 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 		// 各 Subject の解ける問題の数を抽出
 		stmt, err = db.Prepare(`
-		SELECT MAIN.* FROM subjects LEFT OUTER JOIN (
-		SELECT id, subject, SUM(grade0), SUM(grade1), SUM(grade2), SUM(grade3), SUM(grade4), SUM(grade5), SUM(grade6), SUM(grade7), SUM(grade8), SUM(grade9), SUM(grade10), SUM(grade11), SUM(grade12)
+		SELECT subjects.id, subjects.subject, MAIN.grade1, MAIN.grade2, MAIN.grade3, MAIN.grade4, MAIN.grade5, MAIN.grade6, MAIN.grade7, MAIN.grade8, MAIN.grade9, MAIN.grade10, MAIN.grade11, MAIN.grade12 FROM subjects LEFT OUTER JOIN (
+		SELECT id, subject, SUM(grade0) AS grade0, SUM(grade1) AS grade1, SUM(grade2) AS grade2, SUM(grade3) AS grade3, SUM(grade4) AS grade4, SUM(grade5) AS grade5, SUM(grade6) AS grade6, SUM(grade7) AS grade7, SUM(grade8) AS grade8, SUM(grade9) AS grade9, SUM(grade10) AS grade10, SUM(grade11) AS grade11, SUM(grade12) AS grade12
 		FROM (
 		SELECT S.id, S.subject,
 		CASE G.grade WHEN 0 THEN COUNT(Q.id) ELSE 0 END AS grade0,
@@ -99,15 +99,12 @@ func (c SubjectsController) SubjectsHandler(db *sql.DB) http.HandlerFunc {
 
 		for rows.Next() {
 			var subject models.Subject
-			var name sql.NullString
-			var id, grade0, grade1, grade2, grade3, grade4, grade5, grade6, grade7, grade8, grade9, grade10, grade11, grade12 sql.NullInt64
-			err = rows.Scan(&id, &name, &grade0, &grade1, &grade2, &grade3, &grade4, &grade5, &grade6, &grade7, &grade8, &grade9, &grade10, &grade11, &grade12)
+			var grade0, grade1, grade2, grade3, grade4, grade5, grade6, grade7, grade8, grade9, grade10, grade11, grade12 sql.NullInt64
+			err = rows.Scan(&subject.SubjectId, &subject.Name, &grade0, &grade1, &grade2, &grade3, &grade4, &grade5, &grade6, &grade7, &grade8, &grade9, &grade10, &grade11, &grade12)
 			if err != nil {
 				log.Fatal(err)
 			}
-			if id.Valid {
-				subject.SubjectId = id.Int64
-				subject.Name = name.String
+			if grade0.Valid {
 				subject.Grades[0].Solvable = grade0.Int64
 				subject.Grades[1].Solvable = grade1.Int64
 				subject.Grades[2].Solvable = grade2.Int64
