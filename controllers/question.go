@@ -93,7 +93,6 @@ func (c QuestionController) QuestionHandler(db *sql.DB) http.HandlerFunc {
 			utils.ResponseJSON(w, response)
 		} else {
 			rand.Seed(time.Now().Unix())
-			log.Printf("%v, %T", len(questions), len(questions))
 			response.Question = questions[rand.Intn(len(questions))]
 			// レスポンスの返信
 			utils.ResponseJSON(w, response)
