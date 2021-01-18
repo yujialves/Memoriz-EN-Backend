@@ -7,9 +7,11 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+var validationKeyGetter = func(token *jwt.Token) (interface{}, error) {
+	return []byte(os.Getenv("SECRET_STRING")), nil
+}
+
 var JwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
-	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("SECRET_STRING")), nil
-	},
-	SigningMethod: jwt.SigningMethodHS256,
+	ValidationKeyGetter: validationKeyGetter,
+	SigningMethod:       jwt.SigningMethodHS256,
 })
