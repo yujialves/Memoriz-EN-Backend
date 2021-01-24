@@ -8,9 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/subosito/gotenv"
 
-	"./auth"
-	"./controllers"
-	"./driver"
+	"memoriz-en/auth"
+	"memoriz-en/controllers"
+	"memoriz-en/driver"
 )
 
 func init() {

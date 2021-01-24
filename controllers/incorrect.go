@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"../models"
-	"../utils"
+	"memoriz-en/models"
+	"memoriz-en/utils"
 )
 
 func (c QuestionController) InCorrectHandler(db *sql.DB) http.HandlerFunc {

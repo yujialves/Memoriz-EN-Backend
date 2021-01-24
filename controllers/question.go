@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"../models"
-	"../utils"
+	"memoriz-en/models"
+	"memoriz-en/utils"
 )
 
 type QuestionController struct{}

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"../models"
-	"../utils"
+	"memoriz-en/models"
+	"memoriz-en/utils"
 )
 
 func (c AuthController) RefreshHandler() http.HandlerFunc {

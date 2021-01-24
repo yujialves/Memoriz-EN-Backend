@@ -7,7 +7,8 @@ import (
 	"os"
 	"time"
 
-	"../models"
+	"memoriz-en/models"
+
 	"github.com/form3tech-oss/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )

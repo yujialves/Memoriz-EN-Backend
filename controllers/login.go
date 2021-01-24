@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"regexp"
 
-	"../models"
-	"../utils"
+	"memoriz-en/models"
+	"memoriz-en/utils"
 )
 
 type AuthController struct{}

@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"../models"
-	"../utils"
+	"memoriz-en/models"
+	"memoriz-en/utils"
 )
 
 type SubjectsController struct{}

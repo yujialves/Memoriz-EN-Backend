@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"../models"
-	"../utils"
+	"memoriz-en/models"
+	"memoriz-en/utils"
 )
 
 func (c QuestionController) QuestionListHandler(db *sql.DB) http.HandlerFunc {
