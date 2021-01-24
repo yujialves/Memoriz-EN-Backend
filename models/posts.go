@@ -22,3 +22,7 @@ type QuestionPost struct {
 type QuestionListPost struct {
 	SubjectID int `json:"subjectId"`
 }
+
+type BingPost struct {
+	Word string `json:"word"`
+}

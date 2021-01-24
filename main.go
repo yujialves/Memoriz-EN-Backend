@@ -34,6 +34,7 @@ func main() {
 	router.Handle("/question/correct", auth.JwtMiddleware.Handler(questionController.CorrectHandler(db))).Methods("POST")
 	router.Handle("/question/incorrect", auth.JwtMiddleware.Handler(questionController.InCorrectHandler(db))).Methods("POST")
 	router.Handle("/question/list", auth.JwtMiddleware.Handler(questionController.QuestionListHandler(db))).Methods("POST")
+	router.Handle("/question/bing", auth.JwtMiddleware.Handler(questionController.BingHandler()))
 
 	// サーバーの起動
 	log.Fatal(http.ListenAndServe(":9000", router))
