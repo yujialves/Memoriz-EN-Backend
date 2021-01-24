@@ -77,7 +77,7 @@ func makeRequest(word string) *http.Response {
 	log.Println("client.Do")
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 	}
 	log.Println("res")
 	log.Println(res)
