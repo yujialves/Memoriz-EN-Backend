@@ -36,12 +36,20 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 		word := post.Word
 
 		log.Println("first makeRequest")
-		res := makeRequest(word)
+		res, err := makeRequest(word)
+		if err != nil {
+			utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音源の取得に失敗"})
+			return
+		}
 		if res.StatusCode == http.StatusUnauthorized {
 			log.Println("getToken")
 			token = getToken()
 			log.Println("second makeRequest")
-			res = makeRequest(word)
+			res, err = makeRequest(word)
+			if err != nil {
+				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音源の取得に失敗"})
+				return
+			}
 		}
 
 		body, err := ioutil.ReadAll(res.Body)
@@ -53,7 +61,7 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 	}
 }
 
-func makeRequest(word string) *http.Response {
+func makeRequest(word string) (*http.Response, error) {
 	postString := `<speak version='1.0' xml:lang='en-US'><voice xml:lang='en-US' xml:gender='Female' name='en-US-JessaRUS'><prosody rate='-20.00%'>` + word + `</prosody></voice></speak>`
 
 	log.Println("NewRequest")
@@ -78,10 +86,11 @@ func makeRequest(word string) *http.Response {
 	res, err := client.Do(req)
 	if err != nil {
 		log.Println(err.Error())
+		return nil, err
 	}
 	log.Println("res")
 	log.Println(res)
-	return res
+	return res, nil
 }
 
 func getToken() string {
