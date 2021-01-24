@@ -89,6 +89,9 @@ func getToken() string {
 	driver := agouti.ChromeDriver(
 		agouti.ChromeOptions("args", []string{
 			"--headless",
+			"--window-size=300,1200",
+			"--disable-dev-shm-usage",
+			"no-sandbox",
 		}),
 	)
 	defer driver.Stop()
