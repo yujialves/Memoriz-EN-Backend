@@ -35,9 +35,12 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 		// wordの取得
 		word := post.Word
 
+		log.Println("first makeRequest")
 		res := makeRequest(word)
 		if res.StatusCode == http.StatusUnauthorized {
+			log.Println("getToken")
 			token = getToken()
+			log.Println("second makeRequest")
 			res = makeRequest(word)
 		}
 
@@ -53,6 +56,7 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 func makeRequest(word string) *http.Response {
 	postString := `<speak version='1.0' xml:lang='en-US'><voice xml:lang='en-US' xml:gender='Female' name='en-US-JessaRUS'><prosody rate='-20.00%'>` + word + `</prosody></voice></speak>`
 
+	log.Println("NewRequest")
 	req, err := http.NewRequest("POST", "https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1?", bytes.NewBuffer([]byte(postString)))
 	if err != nil {
 		log.Fatal(err.Error())
@@ -62,6 +66,7 @@ func makeRequest(word string) *http.Response {
 	req.Header.Add("content-type", "application/ssml+xml")
 	req.Header.Add("content-length", strconv.FormatInt(int64(len(postString)), 10))
 
+	log.Println("proxyURL")
 	proxyURL, _ := url.Parse("http://" + os.Getenv("VPN_USER") + ":" + os.Getenv("VPN_PASS") + os.Getenv("VPN_HOST") + ":80")
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -69,14 +74,18 @@ func makeRequest(word string) *http.Response {
 			Proxy:           http.ProxyURL(proxyURL),
 		},
 	}
+	log.Println("client.Do")
 	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	log.Println("res")
+	log.Println(res)
 	return res
 }
 
 func getToken() string {
+	log.Println("agouti.ChromeDriver")
 	driver := agouti.ChromeDriver(
 		agouti.ChromeOptions("args", []string{
 			"--headless",
@@ -84,24 +93,29 @@ func getToken() string {
 	)
 	defer driver.Stop()
 
+	log.Println("agouti proxy")
 	proxys := agouti.ProxyConfig{
 		ProxyType:          "pac",                                                                                           //All type -> {direct|manual|pac|autodetect|system}
 		ProxyAutoconfigURL: "http://" + os.Getenv("VPN_USER") + ":" + os.Getenv("VPN_PASS") + os.Getenv("VPN_HOST") + ":80", //This is Your Shadowsocks local pac url
 	}
 	capabilities := agouti.NewCapabilities().Browser("chrome").Proxy(proxys).Without("javascriptEnabled")
 
+	log.Println("driver start")
 	if err := driver.Start(); err != nil {
 		log.Fatal(err.Error())
 	}
 
+	log.Println("driver NewPage")
 	page, err := driver.NewPage(agouti.Desired(capabilities))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	log.Println("driver Navigate")
 	if err := page.Navigate(`https://www.bing.com/translator`); err != nil {
 		log.Fatal(err.Error())
 	}
 
+	log.Println("driver Find")
 	textarea := page.FindByXPath(`//*[@id="tta_input_ta"]`)
 	if err = textarea.Fill("init"); err != nil {
 		log.Fatal(err.Error())
@@ -110,18 +124,24 @@ func getToken() string {
 	script := `return sessionStorage.getItem("TTSR");`
 	var token string
 	for {
+		log.Println("driver Find 2")
 		soundButton := page.FindByXPath(`//*[@id="tta_playiconsrc"]`)
+		log.Println("soundButton click")
 		if err = soundButton.Click(); err != nil {
 			log.Fatal(err.Error())
 		}
+		log.Println("page run script")
 		if err = page.RunScript(script, nil, &token); err != nil {
 			log.Fatal(err.Error())
 		} else {
+			log.Println("trim space")
 			if strings.TrimSpace(token) != "" {
 				break
 			}
 		}
 	}
 
+	log.Println("token")
+	log.Println(token)
 	return token
 }
