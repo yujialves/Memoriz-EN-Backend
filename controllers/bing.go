@@ -43,7 +43,11 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 		}
 		if res.StatusCode == http.StatusUnauthorized {
 			log.Println("getToken")
-			token = getToken()
+			token, err = getToken()
+			if err != nil {
+				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "トークンの取得に失敗"})
+				return
+			}
 			log.Println("second makeRequest")
 			res, err = makeRequest(word)
 			if err != nil {
@@ -54,7 +58,8 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err.Error())
+			utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "ボディの読み込みに失敗"})
+			return
 		}
 
 		w.Write(body)
@@ -67,7 +72,7 @@ func makeRequest(word string) (*http.Response, error) {
 	log.Println("NewRequest")
 	req, err := http.NewRequest("POST", "https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1?", bytes.NewBuffer([]byte(postString)))
 	if err != nil {
-		log.Fatal(err.Error())
+		return nil, err
 	}
 	req.Header.Add("x-microsoft-outputformat", "audio-16khz-32kbitrate-mono-mp3")
 	req.Header.Add("authorization", "Bearer "+token)
@@ -93,7 +98,7 @@ func makeRequest(word string) (*http.Response, error) {
 	return res, nil
 }
 
-func getToken() string {
+func getToken() (string, error) {
 	log.Println("agouti.ChromeDriver")
 	driver := agouti.ChromeDriver(
 		agouti.ChromeOptions("args", []string{
@@ -114,23 +119,23 @@ func getToken() string {
 
 	log.Println("driver start")
 	if err := driver.Start(); err != nil {
-		log.Fatal(err.Error())
+		return "", err
 	}
 
 	log.Println("driver NewPage")
 	page, err := driver.NewPage(agouti.Desired(capabilities))
 	if err != nil {
-		log.Fatal(err.Error())
+		return "", err
 	}
 	log.Println("driver Navigate")
 	if err := page.Navigate(`https://www.bing.com/translator`); err != nil {
-		log.Fatal(err.Error())
+		return "", err
 	}
 
 	log.Println("driver Find")
 	textarea := page.FindByXPath(`//*[@id="tta_input_ta"]`)
 	if err = textarea.Fill("init"); err != nil {
-		log.Fatal(err.Error())
+		return "", err
 	}
 
 	script := `return sessionStorage.getItem("TTSR");`
@@ -140,11 +145,11 @@ func getToken() string {
 		soundButton := page.FindByXPath(`//*[@id="tta_playiconsrc"]`)
 		log.Println("soundButton click")
 		if err = soundButton.Click(); err != nil {
-			log.Fatal(err.Error())
+			return "", err
 		}
 		log.Println("page run script")
 		if err = page.RunScript(script, nil, &token); err != nil {
-			log.Fatal(err.Error())
+			return "", err
 		} else {
 			log.Println("trim space")
 			if strings.TrimSpace(token) != "" {
@@ -155,5 +160,5 @@ func getToken() string {
 
 	log.Println("token")
 	log.Println(token)
-	return token
+	return token, nil
 }
