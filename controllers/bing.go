@@ -35,22 +35,23 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 		// wordの取得
 		word := post.Word
 
-		log.Println("first makeRequest")
 		res, err := makeRequest(word)
 		if err != nil {
+			log.Println(err.Error())
 			utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音源の取得に失敗"})
 			return
 		}
 		if res.StatusCode == http.StatusUnauthorized {
-			log.Println("getToken")
 			token, err = getToken()
 			if err != nil {
+				log.Println(err.Error())
 				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "トークンの取得に失敗"})
 				return
 			}
-			log.Println("second makeRequest")
+
 			res, err = makeRequest(word)
 			if err != nil {
+				log.Println(err.Error())
 				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音源の取得に失敗"})
 				return
 			}
@@ -58,6 +59,7 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
+			log.Println(err.Error())
 			utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "ボディの読み込みに失敗"})
 			return
 		}
@@ -69,7 +71,6 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 func makeRequest(word string) (*http.Response, error) {
 	postString := `<speak version='1.0' xml:lang='en-US'><voice xml:lang='en-US' xml:gender='Female' name='en-US-JessaRUS'><prosody rate='-20.00%'>` + word + `</prosody></voice></speak>`
 
-	log.Println("NewRequest")
 	req, err := http.NewRequest("POST", "https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1?", bytes.NewBuffer([]byte(postString)))
 	if err != nil {
 		return nil, err
@@ -79,7 +80,6 @@ func makeRequest(word string) (*http.Response, error) {
 	req.Header.Add("content-type", "application/ssml+xml")
 	req.Header.Add("content-length", strconv.FormatInt(int64(len(postString)), 10))
 
-	log.Println("proxyURL")
 	proxyURL, _ := url.Parse("http://" + os.Getenv("VPN_USER") + ":" + os.Getenv("VPN_PASS") + os.Getenv("VPN_HOST") + ":80")
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -87,19 +87,15 @@ func makeRequest(word string) (*http.Response, error) {
 			Proxy:           http.ProxyURL(proxyURL),
 		},
 	}
-	log.Println("client.Do")
 	res, err := client.Do(req)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
-	log.Println("res")
-	log.Println(res)
 	return res, nil
 }
 
 func getToken() (string, error) {
-	log.Println("agouti.ChromeDriver")
 	driver := agouti.ChromeDriver(
 		agouti.ChromeOptions("args", []string{
 			"--headless",
@@ -110,29 +106,24 @@ func getToken() (string, error) {
 	)
 	defer driver.Stop()
 
-	log.Println("agouti proxy")
 	proxys := agouti.ProxyConfig{
 		ProxyType:          "pac",                                                                                           //All type -> {direct|manual|pac|autodetect|system}
 		ProxyAutoconfigURL: "http://" + os.Getenv("VPN_USER") + ":" + os.Getenv("VPN_PASS") + os.Getenv("VPN_HOST") + ":80", //This is Your Shadowsocks local pac url
 	}
 	capabilities := agouti.NewCapabilities().Browser("chrome").Proxy(proxys).Without("javascriptEnabled")
 
-	log.Println("driver start")
 	if err := driver.Start(); err != nil {
 		return "", err
 	}
 
-	log.Println("driver NewPage")
 	page, err := driver.NewPage(agouti.Desired(capabilities))
 	if err != nil {
 		return "", err
 	}
-	log.Println("driver Navigate")
 	if err := page.Navigate(`https://www.bing.com/translator`); err != nil {
 		return "", err
 	}
 
-	log.Println("driver Find")
 	textarea := page.FindByXPath(`//*[@id="tta_input_ta"]`)
 	if err = textarea.Fill("init"); err != nil {
 		return "", err
@@ -141,24 +132,18 @@ func getToken() (string, error) {
 	script := `return sessionStorage.getItem("TTSR");`
 	var token string
 	for {
-		log.Println("driver Find 2")
 		soundButton := page.FindByXPath(`//*[@id="tta_playiconsrc"]`)
-		log.Println("soundButton click")
 		if err = soundButton.Click(); err != nil {
 			return "", err
 		}
-		log.Println("page run script")
 		if err = page.RunScript(script, nil, &token); err != nil {
 			return "", err
 		} else {
-			log.Println("trim space")
 			if strings.TrimSpace(token) != "" {
 				break
 			}
 		}
 	}
 
-	log.Println("token")
-	log.Println(token)
 	return token, nil
 }
