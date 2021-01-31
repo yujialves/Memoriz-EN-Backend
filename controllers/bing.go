@@ -45,13 +45,11 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音声の読み込みに失敗"})
 				return
 			}
-			log.Println("キャッシュから読み込み")
 			w.Write(sound)
 			return
 		}
 
 		// キャッシュされていなければ、音声をbing/translatorから取得
-		log.Println("bingから読み込み")
 		res, err := getAudioSource(post.Word)
 		if err != nil {
 			log.Println(err.Error())
@@ -83,7 +81,6 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 
 		// 音声をキャッシュ
 		ioutil.WriteFile(path, body, 0664)
-		log.Println("音声をキャッシュ")
 
 		w.Write(body)
 	}
