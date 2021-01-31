@@ -32,10 +32,27 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 		var post models.BingPost
 		json.NewDecoder(r.Body).Decode(&post)
 
-		// wordの取得
-		word := post.Word
+		// 音声のパスを設定
+		strid := strconv.Itoa(post.ID)
+		path := "audios/" + strid + ".mp3"
 
-		res, err := makeRequest(word)
+		// サーバにキャッシュされているか確認
+		if isSoundCached(path) {
+			// ファイル読み込み
+			sound, err := ioutil.ReadFile(path)
+			if err != nil {
+				log.Println(err.Error())
+				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音声の読み込みに失敗"})
+				return
+			}
+			log.Println("キャッシュから読み込み")
+			w.Write(sound)
+			return
+		}
+
+		// キャッシュされていなければ、音声をbing/translatorから取得
+		log.Println("bingから読み込み")
+		res, err := getAudioSource(post.Word)
 		if err != nil {
 			log.Println(err.Error())
 			utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音源の取得に失敗"})
@@ -49,7 +66,7 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 				return
 			}
 
-			res, err = makeRequest(word)
+			res, err = getAudioSource(post.Word)
 			if err != nil {
 				log.Println(err.Error())
 				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "音源の取得に失敗"})
@@ -64,11 +81,15 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 			return
 		}
 
+		// 音声をキャッシュ
+		ioutil.WriteFile(path, body, 0664)
+		log.Println("音声をキャッシュ")
+
 		w.Write(body)
 	}
 }
 
-func makeRequest(word string) (*http.Response, error) {
+func getAudioSource(word string) (*http.Response, error) {
 	postString := `<speak version='1.0' xml:lang='en-US'><voice xml:lang='en-US' xml:gender='Female' name='en-US-JessaRUS'><prosody rate='-20.00%'>` + word + `</prosody></voice></speak>`
 
 	req, err := http.NewRequest("POST", "https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1?", bytes.NewBuffer([]byte(postString)))
@@ -146,4 +167,9 @@ func getToken() (string, error) {
 	}
 
 	return token, nil
+}
+
+func isSoundCached(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }

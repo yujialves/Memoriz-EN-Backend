@@ -25,4 +25,5 @@ type QuestionListPost struct {
 
 type BingPost struct {
 	Word string `json:"word"`
+	ID   int    `json:"id"`
 }
