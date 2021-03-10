@@ -87,6 +87,7 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 }
 
 func getAudioSource(word string) (*http.Response, error) {
+	log.Println("GET AUDIO \"" + word + "\"")
 	postString := `<speak version='1.0' xml:lang='en-US'><voice xml:lang='en-US' xml:gender='Female' name='en-US-JessaRUS'><prosody rate='-20.00%'>` + word + `</prosody></voice></speak>`
 
 	req, err := http.NewRequest("POST", "https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1?", bytes.NewBuffer([]byte(postString)))
@@ -110,10 +111,12 @@ func getAudioSource(word string) (*http.Response, error) {
 		log.Println(err.Error())
 		return nil, err
 	}
+	log.Println("GET AUDIO STATUS CODE", res.StatusCode)
 	return res, nil
 }
 
 func getToken() (string, error) {
+	log.Println("ENTER IN GET TOKEN")
 	driver := agouti.ChromeDriver(
 		agouti.ChromeOptions("args", []string{
 			"--headless",
@@ -163,6 +166,7 @@ func getToken() (string, error) {
 		}
 	}
 
+	log.Println("TOKEN " + token)
 	return token, nil
 }
 
