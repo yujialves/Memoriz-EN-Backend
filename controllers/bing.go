@@ -49,6 +49,17 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 			return
 		}
 
+		// トークンが空なら、トークンを取得
+		if token == "" {
+			t, err := getToken()
+			token = t
+			if err != nil {
+				log.Println(err.Error())
+				utils.ResponseWithError(w, http.StatusInternalServerError, models.ErrorResponse{Message: "トークンの取得に失敗"})
+				return
+			}
+		}
+
 		// キャッシュされていなければ、音声をbing/translatorから取得
 		res, err := getAudioSource(post.Word)
 		if err != nil {
@@ -87,10 +98,9 @@ func (c QuestionController) BingHandler() http.HandlerFunc {
 }
 
 func getAudioSource(word string) (*http.Response, error) {
-	log.Println("GET AUDIO \"" + word + "\"")
 	postString := `<speak version='1.0' xml:lang='en-US'><voice xml:lang='en-US' xml:gender='Female' name='en-US-JessaRUS'><prosody rate='-20.00%'>` + word + `</prosody></voice></speak>`
 
-	req, err := http.NewRequest("POST", "https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1?", bytes.NewBuffer([]byte(postString)))
+	req, err := http.NewRequest("POST", "https://southeastasia.tts.speech.microsoft.com/cognitiveservices/v1?", bytes.NewBuffer([]byte(postString)))
 	if err != nil {
 		return nil, err
 	}
@@ -99,24 +109,21 @@ func getAudioSource(word string) (*http.Response, error) {
 	req.Header.Add("content-type", "application/ssml+xml")
 	req.Header.Add("content-length", strconv.FormatInt(int64(len(postString)), 10))
 
-	proxyURL, _ := url.Parse("http://" + os.Getenv("VPN_USER") + ":" + os.Getenv("VPN_PASS") + os.Getenv("VPN_HOST") + ":80")
+	proxyURL, err := url.Parse("http://" + os.Getenv("VPN_RAW_USER") + ":" + os.Getenv("VPN_RAW_PASS") + os.Getenv("VPN_HOST") + ":80")
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			Proxy:           http.ProxyURL(proxyURL),
-		},
-	}
+		}}
 	res, err := client.Do(req)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
-	log.Println("GET AUDIO STATUS CODE", res.StatusCode)
 	return res, nil
 }
 
 func getToken() (string, error) {
-	log.Println("ENTER IN GET TOKEN")
 	driver := agouti.ChromeDriver(
 		agouti.ChromeOptions("args", []string{
 			"--headless",
@@ -153,7 +160,7 @@ func getToken() (string, error) {
 	script := `return sessionStorage.getItem("TTSR");`
 	var token string
 	for {
-		soundButton := page.FindByXPath(`//*[@id="tta_playiconsrc"]`)
+		soundButton := page.FindByXPath(`//*[@id="tta_playicontgt"]`)
 		if err = soundButton.Click(); err != nil {
 			return "", err
 		}
@@ -165,8 +172,6 @@ func getToken() (string, error) {
 			}
 		}
 	}
-
-	log.Println("TOKEN " + token)
 	return token, nil
 }
 
